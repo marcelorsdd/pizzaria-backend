@@ -1,6 +1,7 @@
-import prisma from '../../prisma';
+import { sign } from 'jsonwebtoken';
 import { compare } from 'bcryptjs';
 
+import prisma from '../../prisma';
 interface IAuthRequestProps {
   email: string;
   password: string;
@@ -24,8 +25,23 @@ class AuthUserService {
       throw new Error('User/Password incorrect');
     }
 
+    const token = sign(
+      {
+        name: user.name,
+        email: user.email,
+      },
+      process.env.JWT_SECRET,
+      {
+        subject: user.id,
+        expiresIn: '30d',
+      },
+    );
+
     return {
-      status: passwordMatch,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      token,
     };
   }
 }
